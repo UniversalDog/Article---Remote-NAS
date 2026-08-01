@@ -1,0 +1,99 @@
+services:
+
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'    # Public HTTP
+      - '443:443'  # Public HTTPS (SSL Termination)
+      - '81:81'    # NPM Admin UI (Keep local/Tailscale)
+    volumes:
+      - /share/Docker/automation/npm/data:/data
+      - /share/Docker/automation/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - media-bridge
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Docker/automation/jellyseerr/config:/app/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+
+  radarr:
+    image: ghcr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1002
+      - PGID=100
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Media/Movies:/movies
+      - /share/Media/downloads:/downloads
+      - /share/Docker/automation/radarr/config:/config
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1002
+      - PGID=100
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Docker/automation/sonarr/config:/config
+      - /share/Media/TV:/tv
+      - /share/Media/downloads:/downloads      
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1002
+      - PGID=100
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Docker/automation/prowlarr/config:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  bazarr:
+    image: ghcr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1002
+      - PGID=100
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Docker/automation/bazarr/config:/config
+      - /share/Media/Movies:/movies
+      - /share/Media/TV:/tv
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+
+networks:
+  media-bridge:
+    external: true

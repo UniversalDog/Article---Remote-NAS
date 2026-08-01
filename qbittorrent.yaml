@@ -1,0 +1,37 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=wIV9ziv0hHQibgeccv2Vx5xqZ60blEhr6O8g8ACiGEA=
+      - WIREGUARD_ADDRESS=10.2.0.2/32
+    networks:
+      - media-bridge # <-- CONNECT GLUETUN TO THE BRIDGE
+    ports:
+      - 8085:8085 # qBittorrent Web UI port
+      - 8999:8999 # qBittorrent BitTorrent port
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1002 # Replace with your QNAP NAS user ID
+      - PGID=100  # Replace with your QNAP NAS group ID
+      - TZ=Asia/Makassar
+      - WEBUI_PORT=8085
+    volumes:
+      - /share/Docker/qbittorrent/config:/config # Adjust to your shared folder path
+      - /share/Media/downloads:/downloads                   # Adjust to your download folder path
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    restart: unless-stopped
+networks:
+  media-bridge:
+    external: true
+  

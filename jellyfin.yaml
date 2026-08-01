@@ -1,0 +1,23 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1002
+      - PGID=100
+      - TZ=Asia/Makassar
+    networks:
+      - media-bridge
+    volumes:
+      - /share/Docker/jellyfin/config:/config
+      - /share/Media/TV:/data/tvshows
+      - /share/Media/Movies:/data/movies
+    devices:
+      - /dev/dri:/dev/dri # Enables hardware transcoding (adjust based on your GPU) 
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+    
+networks:
+  media-bridge:
+    external: true

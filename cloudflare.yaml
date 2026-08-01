@@ -1,0 +1,14 @@
+services:
+  cloudflare_automation:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare_automation
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiZDFlMGQ3MDNhNjY1MmNhNmVkNTcwMWRkOGY5ZDc1NDkiLCJ0IjoiMWQxMGQwMGItNGUxMy00MTQzLWEwMDQtMWU5NGRiNzM5ZTdhIiwicyI6Ik1UZG1ZMkpoWXpNdE5qSXhZeTAwWWpRNUxUZzFPRE10WXpJeVlqbG1aV1JsWXpneiJ9
+    networks:
+      - media-bridge
+
+networks:
+  media-bridge:
+    external: true

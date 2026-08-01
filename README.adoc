@@ -1,0 +1,235 @@
+= Building a Secure Homelab: Setting Up Jellyfin, the 'Arr Stack, Tailscale, and Nginx on a QNAP NAS
+
+
+== 0. Legal & Educational Disclaimer
+
+
+[NOTE]
+====
+This guide is provided strictly for educational and technical informational purposes. The software applications referenced in this tutorial (including Jellyfin, Sonarr, Radarr, and related tools) are designed to organize, manage, and stream personal, legally acquired media collections or public-domain content. The author does not host, distribute, or condone the unauthorized acquisition or distribution of copyrighted material. Follow all local copyright laws and service terms when setting up self-hosted environments.
+====
+
+
+== 1. Introduction & Architecture Overview
+
+
+*Goal:* Create a secure media-centric home lab that can be used and managed remotely.
+
+
+*The Stack:*
+
+
+* Media & Automation: Jellyfin, Sonarr, Radarr, Prowlarr, Qbittorrent.
+* Networking & Security: Tailscale (Mesh VPN) and Nginx Proxy Manager / Nginx (Reverse Proxy with SSL).
+* Hardware/OS: QNAP NAS (Container Station / Docker Compose). This document should work with any NAS that allows containers and is sufficiently powerful to cope with the demands of this stack.
+
+
+*Network Topology Diagram (Optional):*
+
+
+image::images/Article Architecture Diagram.png[]
+....
+User (Remote) -> Tailscale -> QNAP Admin & SSH (Internal/Private)
+User (Browser/App) -> Nginx Reverse Proxy (SSL) -> Jellyfin (Exposed/Public)
+....
+
+
+== 2. Prerequisites
+
+
+* A QNAP NAS running Container Station (or Docker/Docker Compose).
+* A Tailscale account.
+* A personal domain name (if using custom URLs via Nginx with Porkbun/Cloudflare/Let's Encrypt).
+* Basic familiarity with SSH and YAML configuration.
+
+
+== 3. Step 1: Base Environment & Container Deployment
+
+
+Setting up Docker Compose / Container Station structure on QNAP.
+
+
+* Storage Configuration: Mapping directory structures properly (for example, `/shares/data/media`, `/shares/data/downloads`, `/shares/data/configs`).
+* Deploying the containers using a sanitized `docker-compose.yml` block.
+* Tip: Include placeholder variables such as `TZ=Your/Timezone`, `PUID=1000`, and `PGID=1000`.
+
+
+== 4. Step 2: Securing Admin Access via Tailscale
+
+
+Why Tailscale? Avoid direct port forwarding for high-risk ports such as SSH (Port 22) and QTS Admin Console (Ports 8080/443).
+
+=== Tailscale on the QNAP NAS
+
+Install the Tailscale package on QNAP using App Center. There are detailed instructions on the Tailscale site.
+Click the link to authenticate. 
+The authentication step failed for me, so in a terminal session I typed this:
+----
+
+sudo tailscale up
+
+----
+Copy the generated URL and paste into a browser tab. Login into Tailscale. The tailscale command on the NAS should show 'Success'.
+
+In the Tailscale Console, on the Machines tab, you should see 
+
+=== Client Setup.
+
+On your Linux or Windows machine, install the Tailscale client.
+
+
+
+
+=== SSH
+
+In either a terminal session on Linux or Powershell window on Window:
+
+
+
+* Authenticate the NAS node to your Tailscale tailnet.
+* Verify SSH and QTS access exclusively over Tailscale IPs (100.x.y.z).
+
+
+== 5. Step 3: Setting Up Nginx Reverse Proxy for Public Services
+
+
+* Install and configure Nginx / Nginx Proxy Manager.
+* Request SSL certificates (Let's Encrypt / Certbot).
+* Configure proxy hosts to forward subdomains or paths to internal container ports (for example, `jellyfin.yourdomain.com -> http://127.0.0.1:8096`).
+* Apply essential security headers and WebSocket support in the Nginx configuration.
+
+
+== 6. Step 4: Connecting the 'Arr Stack & Jellyfin (Internal Automation)
+
+
+* Configure internal container networking so the 'Arr suite can talk to media managers locally using internal Docker bridge network names instead of public hostnames.
+* Link Jellyfin libraries to local volume paths.
+* Note for screenshots: Use public-domain or open-source media (such as Big Buck Bunny) to show library scanning in action.
+
+
+== 7. Step 5: Security Checklist & Best Practices
+
+
+Checklist before publishing or going live:
+
+
+* [ ] Port forwarding disabled on the router except for ports 80/443 (for Nginx/SSL).
+* [ ] QTS Admin login and SSH restricted to local subnet / Tailscale mesh.
+* [ ] Strong passwords and 2FA enabled on all web interfaces.
+* [ ] Config files sanitized of real IP addresses, API keys, and domains.
+
+
+== 8. Conclusion & Wrap-Up
+
+
+Recap the achievements: secure remote access, clean media management, and zero exposed admin ports.
+
+
+Invite community feedback and tips for homelab expansion.
+
+
+
+
+
+
+This document describes the configuration and components of my Mars QNAP NAS.
+
+
+
+
+
+
+
+
+== Jellyfin
+
+
+
+
+
+
+.jellyfin.yaml
+[source,yaml]
+----
+include::jellyfin.yaml[]
+
+
+----
+
+
+== Qbittorrent
+
+
+
+
+.qbittorrent.yaml (docker-compose) file contains the configuration for the Qbittorrent container including the Gluetun VPN container. The Gluetun container is used to route the Qbittorrent traffic through a VPN for privacy and security.
+[source,yaml]
+----
+include::qbittorrent.yaml[]
+
+
+----
+
+
+== Automation
+.automation.yaml (docker-compose) file contains the configuration for the automation containers. These containers are used to automate the downloading and organization of media files. The automation containers include Sonarr, Radarr, and Bazarr.
+[source,yaml]
+----
+include::automation.yaml[]
+----
+
+
+== Cloudflare Tunnel   
+.cloudflare.yaml (docker-compose) file contains the configuration for the Cloudflare tunnel container. This container is used to provide secure external access to the NAS services without exposing the NAS directly to the internet
+Note: This will be removed once I get an IP address that doesn't change every minute. I will then use a reverse proxy to access the NAS services externally.
+[source,yaml]
+----
+include::cloudflare.yaml[]
+----   
+
+
+== Nginx Proxy Manager
+
+
+The Nginx Proxy Manager container is used to manage the reverse proxy for the NAS services. It allows for easy configuration of SSL certificates and domain names for the services running on the NAS.
+
+
+Here is a list of the proxied hosts and their corresponding services:in
+
+
+
+
+## Directory Stucture, Users and Security
+
+
+## Shares
+
+
+These shares have been created.
+
+
+|Folder|Description|
+|:--------------------------------------------------------|:--------------------------------------------------------------------|
+|/share/Media|for Movies and TV Shows|
+|/share/Media/downloads|for qbittorrent files|
+|/share/Media/downloads/complete| for Completed downloads|
+|/share/Media/downloads/incomplete| for incomplete (in progress downloads)|
+|/share/Media/Movies|Contains all the movies|
+|/share/Media/TV|All the TV Shows|
+|/share/Docker|Contains all of the docker containers, configure and their own data files|
+|/share/Docker/automation|The download (qbittorrent) automation tool containers|
+|/share/Docker/external-access|Cloudflare tunner container|
+|/share/Docker/jellyfin|The Jellyfin media server/player container|
+|/share/Docker/qbittorrent|Qbittorrent and Gluetun servers|
+
+
+
+
+
+
+**Permissions
+
+
+
+
+**Users
