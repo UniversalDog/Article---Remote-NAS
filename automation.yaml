@@ -1,25 +1,11 @@
 services:
 
-  npm:
-    image: 'jc21/nginx-proxy-manager:latest'
-    container_name: nginx-proxy-manager
-    restart: unless-stopped
-    ports:
-      - '80:80'    # Public HTTP
-      - '443:443'  # Public HTTPS (SSL Termination)
-      - '81:81'    # NPM Admin UI (Keep local/Tailscale)
-    volumes:
-      - /share/Docker/automation/npm/data:/data
-      - /share/Docker/automation/npm/letsencrypt:/etc/letsencrypt
-    networks:
-      - media-bridge
-
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     environment:
       - LOG_LEVEL=info
-      - TZ=Asia/Makassar
+      - TZ=Your/Timezone
     networks:
       - media-bridge
     volumes:
@@ -32,9 +18,9 @@ services:
     image: ghcr.io/linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - PUID=1002
-      - PGID=100
-      - TZ=Asia/Makassar
+      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
+      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
+      - TZ=Your/Timezone
     networks:
       - media-bridge
     volumes:
@@ -49,9 +35,9 @@ services:
     image: ghcr.io/linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - PUID=1002
-      - PGID=100
-      - TZ=Asia/Makassar
+      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
+      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
+      - TZ=Your/Timezone
     networks:
       - media-bridge
     volumes:
@@ -66,9 +52,9 @@ services:
     image: ghcr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     environment:
-      - PUID=1002
-      - PGID=100
-      - TZ=Asia/Makassar
+      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
+      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
+      - TZ=Your/Timezone
     networks:
       - media-bridge
     volumes:
@@ -81,9 +67,9 @@ services:
     image: ghcr.io/linuxserver/bazarr:latest
     container_name: bazarr
     environment:
-      - PUID=1002
-      - PGID=100
-      - TZ=Asia/Makassar
+      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
+      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
+      - TZ=Your/Timezone
     networks:
       - media-bridge
     volumes:

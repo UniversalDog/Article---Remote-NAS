@@ -10,13 +10,12 @@ This guide is provided strictly for educational and technical informational purp
 ====
 
 
-== 1. Introduction & Architecture Overview
+== Introduction & Architecture Overview
+
+In this guide, we will walk through the process of setting up a secure, media-centric home lab using a QNAP NAS. The goal is to create a system that allows for remote management and access while maintaining strong security practices. The architecture will leverage containerization, reverse proxying, and mesh VPN technology to ensure that sensitive services are not exposed directly to the internet.
 
 
-*Goal:* Create a secure media-centric home lab that can be used and managed remotely.
-
-
-*The Stack:*
+== The Stack
 
 
 * Media & Automation: Jellyfin, Sonarr, Radarr, Prowlarr, Qbittorrent.
@@ -24,37 +23,83 @@ This guide is provided strictly for educational and technical informational purp
 * Hardware/OS: QNAP NAS (Container Station / Docker Compose). This document should work with any NAS that allows containers and is sufficiently powerful to cope with the demands of this stack.
 
 
-*Network Topology Diagram (Optional):*
-
+Broadly, the architecture can be visualized as follows:
 
 image::images/Article Architecture Diagram.png[]
 ....
-User (Remote) -> Tailscale -> QNAP Admin & SSH (Internal/Private)
-User (Browser/App) -> Nginx Reverse Proxy (SSL) -> Jellyfin (Exposed/Public)
+User (Remote) -> Tailscale -> QNAP QTS Console & SSH (Internal/Private)
+User (Browser/App/Google TV) -> Nginx Reverse Proxy (SSL) -> Jellyfin (Exposed/Public)
 ....
 
 
-== 2. Prerequisites
+== Prerequisites
 
-
-* A QNAP NAS running Container Station (or Docker/Docker Compose).
+* A QNAP NAS running Container Station (or Docker/Docker Compose). Any system that supports containerization will work.
 * A Tailscale account.
 * A personal domain name (if using custom URLs via Nginx with Porkbun/Cloudflare/Let's Encrypt).
 * Basic familiarity with SSH and YAML configuration.
+* Github account (optional, for storing configuration files and version control). 
 
 
-== 3. Step 1: Base Environment & Container Deployment
+== Base Environment & Container Deployment
 
 
 Setting up Docker Compose / Container Station structure on QNAP.
 
+I decided to use a private GitHub repository to store my configuration files. This allows me to version control my configuration and easily deploy it on other systems. I also use a `.env` file to store sensitive information such as API keys and passwords. This file is not checked into version control for security reasons. Each container has its own configuration file, which is included in the main `docker-compose.yml` file. This allows for easy management and updates of individual containers without affecting the entire stack.
 
-* Storage Configuration: Mapping directory structures properly (for example, `/shares/data/media`, `/shares/data/downloads`, `/shares/data/configs`).
+The respository provides a cloud backup of the configuration files, which can be useful in case of hardware failure or if I need to set up the stack on a new system. The `.env` file is used to store sensitive information such as API keys and passwords. This file is not checked into version control for security reasons.
+
+I created a user 'dockeruser' on the QNAP NAS with a UID of 1002 and GID of 1000. This user is used to run the containers and access the shared folders. The user has read/write permissions to the shared folders used by the containers. The ownership and permissions of the shared folders are set to allow the 'dockeruser' to read and write files, Adiministrators are the only other users with access to the folders. This ensures that the containers can access the necessary files without exposing sensitive data to other users on the NAS.
+
+These are the directory structures I created on the QNAP NAS for the containers and their data:
+
+[cols="1,2", options="header"]
+|===
+| Folder | Description
+| /share/Media | for Movies and TV Shows
+| /share/Media/downloads | for qbittorrent files
+| /share/Media/downloads/complete | for Completed downloads
+| /share/Media/downloads/incomplete | for incomplete (in progress downloads)
+| /share/Media/Movies | Contains all the movies
+| /share/Media/TV | All the TV Shows
+| /share/Docker | Contains all of the docker containers, configure and their own data files
+| /share/Docker/automation | The download automation tools containers
+| /share/Docker/automation/bazaar | Subtitle management container
+| /share/Docker/automation/jellyseerr | Content Search Engine container
+| /share/Docker/automation/prowlarr | Index Server
+| /share/Docker/automation/radarr | Movie Management container
+| /share/Docker/automation/sonarr | TV Show Management container
+| /share/Docker/npn | Nginx Reverse Proxy container
+| /share/Docker/jellyfin | The Jellyfin media server/player container
+| /share/Docker/qbittorrent | Qbittorrent and Gluetun containers
+|===
+
+The ownership of the /share/media folders is set to dockeuer and everyone.
+The ownership of the /share/Docker folders is set to dockeruser and administrators. 
+
+The permissions are set to allow read/write access for the owner and group, and read-only access for others. This ensures that the containers can access the necessary files without exposing sensitive data to other users on the NAS.
+
+== Application Deployment
+
+In Container Station, I have created these applications (docker-compose) containers:
+* Jellyfin
+* Qbittorrent (with Gluetun VPN)
+* Automation containers (Sonarr, Radarr, Prowlarr, Bazarr)
+* NPM (Nginx Proxy Manager)
+
+These are all in separate docker-compose files, which are included in the main `docker-compose.yml` file. This allows for easy management and updates of individual containers without affecting the entire stack.
+
+The Container Station application looks like this:
+image::images/Container Station.png[]
+
+
+
 * Deploying the containers using a sanitized `docker-compose.yml` block.
 * Tip: Include placeholder variables such as `TZ=Your/Timezone`, `PUID=1000`, and `PGID=1000`.
 
 
-== 4. Step 2: Securing Admin Access via Tailscale
+== 4. Securing Admin Access via Tailscale
 
 
 Why Tailscale? Avoid direct port forwarding for high-risk ports such as SSH (Port 22) and QTS Admin Console (Ports 8080/443).

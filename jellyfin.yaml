@@ -3,9 +3,11 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     environment:
-      - PUID=1002
-      - PGID=100
-      - TZ=Asia/Makassar
+      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
+      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
+      - TZ=Your/Timezone
+    env_file:
+      - /share/Docker/jellyfin/.env
     networks:
       - media-bridge
     volumes:
