@@ -1,7 +1,7 @@
 = Building a Secure Homelab: Setting Up Jellyfin, the 'Arr Stack, Tailscale, and Nginx on a QNAP NAS
 
 
-== 0. Legal & Educational Disclaimer
+== Legal & Educational Disclaimer
 
 
 [NOTE]
@@ -18,7 +18,7 @@ In this guide, we will walk through the process of setting up a secure, media-ce
 == The Stack
 
 
-* Media & Automation: Jellyfin, Sonarr, Radarr, Prowlarr, Qbittorrent.
+* Media & Automation: Jellyfin, Sonarr, Radarr, Jellyseerr, Prowlarr, Qbittorrent.
 * Networking & Security: Tailscale (Mesh VPN) and Nginx Proxy Manager / Nginx (Reverse Proxy with SSL).
 * Hardware/OS: QNAP NAS (Container Station / Docker Compose). This document should work with any NAS that allows containers and is sufficiently powerful to cope with the demands of this stack.
 
@@ -46,11 +46,11 @@ User (Browser/App/Google TV) -> Nginx Reverse Proxy (SSL) -> Jellyfin (Exposed/P
 
 Setting up Docker Compose / Container Station structure on QNAP.
 
-I decided to use a private GitHub repository to store my configuration files. This allows me to version control my configuration and easily deploy it on other systems. I also use a `.env` file to store sensitive information such as API keys and passwords. This file is not checked into version control for security reasons. Each container has its own configuration file, which is included in the main `docker-compose.yml` file. This allows for easy management and updates of individual containers without affecting the entire stack.
+I decided to use a private GitHub repository to store my configuration files. This allows me to version control my configuration and easily deploy it on other systems. I also use a `.env` file to store sensitive information such as API keys and passwords. This file is not checked into version control for security reasons. Each container requires sensitive parameters has its own .env, which is included in the main `docker-compose.yml` file. This allows for easy management and updates of individual containers without affecting the entire stack.
 
 The respository provides a cloud backup of the configuration files, which can be useful in case of hardware failure or if I need to set up the stack on a new system. The `.env` file is used to store sensitive information such as API keys and passwords. This file is not checked into version control for security reasons.
 
-I created a user 'dockeruser' on the QNAP NAS with a UID of 1002 and GID of 1000. This user is used to run the containers and access the shared folders. The user has read/write permissions to the shared folders used by the containers. The ownership and permissions of the shared folders are set to allow the 'dockeruser' to read and write files, Adiministrators are the only other users with access to the folders. This ensures that the containers can access the necessary files without exposing sensitive data to other users on the NAS.
+I created a user 'dockeruser' on the QNAP NAS with, in my case, a UID of 1002 and GID of 1000. This user is used to run the containers and access the shared folders. The user has read/write permissions to the shared folders used by the containers. The ownership and permissions of the shared folders are set to allow the 'dockeruser' to read and write files, Adiministrators are the only other users with access to the folders. This ensures that the containers can access the necessary files without exposing sensitive data to other users on the NAS.
 
 These are the directory structures I created on the QNAP NAS for the containers and their data:
 
@@ -85,18 +85,54 @@ The permissions are set to allow read/write access for the owner and group, and 
 In Container Station, I have created these applications (docker-compose) containers:
 * Jellyfin
 * Qbittorrent (with Gluetun VPN)
-* Automation containers (Sonarr, Radarr, Prowlarr, Bazarr)
+* Automation containers (Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr)
 * NPM (Nginx Proxy Manager)
 
 These are all in separate docker-compose files, which are included in the main `docker-compose.yml` file. This allows for easy management and updates of individual containers without affecting the entire stack.
 
 The Container Station application looks like this:
+
+
+
 image::images/Container Station.png[]
 
+These are the docker-compose files for each container:
+
+Note: I have named the docker-compose files with the name of the container, for example, `jellyfin.yaml`, `qbittorrent.yaml`, `automation.yaml`, and `npn.yaml`. This makes it easy to identify which file corresponds to which container.
 
 
-* Deploying the containers using a sanitized `docker-compose.yml` block.
-* Tip: Include placeholder variables such as `TZ=Your/Timezone`, `PUID=1000`, and `PGID=1000`.
+== Jellyfin
+
+.jellyfin.yaml (docker-compose) file contains the configuration for the Jellyfin container. Jellyfin is a free and open-source media server that allows you to organize, manage, and stream your media files to various devices.
+[source,yaml]
+----
+include::jellyfin.yaml[]
+
+
+----
+
+
+== Qbittorrent
+
+.qbittorrent.yaml (docker-compose) file contains the configuration for the Qbittorrent container including the Gluetun VPN container. The Gluetun container is used to route the Qbittorrent traffic through a VPN for privacy and security.
+
+I use ProtonVPN as my VPN provider. You will need to create a ProtonVPN account and obtain your OpenVPN configuration files and credentials. The Gluetun container will use these files to connect to the ProtonVPN servers.  You will need to modify the .env file for the Gluetun container with your ProtonVPN credentials and configuration files.
+There are examples of the configration for major VPN providers out there in Internet land if you don't use ProtonVPN. You will need to modify the .env file for the Gluetun container with your VPN provider's credentials and configuration files.
+
+[source,yaml]
+----
+include::qbittorrent.yaml[]
+
+----
+
+
+== Automation
+.automation.yaml (docker-compose) file contains the configuration for the automation containers. These containers are used to automate the downloading and organization of media files. The automation containers include Prowlarr, Sonarr, Radarr, and Bazarr.
+[source,yaml]
+----
+include::automation.yaml[]
+----
+
 
 
 == 4. Securing Admin Access via Tailscale
@@ -116,7 +152,6 @@ sudo tailscale up
 ----
 Copy the generated URL and paste into a browser tab. Login into Tailscale. The tailscale command on the NAS should show 'Success'.
 
-In the Tailscale Console, on the Machines tab, you should see 
 
 === Client Setup.
 
@@ -135,7 +170,7 @@ In either a terminal session on Linux or Powershell window on Window:
 * Verify SSH and QTS access exclusively over Tailscale IPs (100.x.y.z).
 
 
-== 5. Step 3: Setting Up Nginx Reverse Proxy for Public Services
+== Setting Up Nginx Reverse Proxy for Public Services
 
 
 * Install and configure Nginx / Nginx Proxy Manager.
@@ -186,42 +221,6 @@ This document describes the configuration and components of my Mars QNAP NAS.
 
 
 
-== Jellyfin
-
-
-
-
-
-
-.jellyfin.yaml
-[source,yaml]
-----
-include::jellyfin.yaml[]
-
-
-----
-
-
-== Qbittorrent
-
-
-
-
-.qbittorrent.yaml (docker-compose) file contains the configuration for the Qbittorrent container including the Gluetun VPN container. The Gluetun container is used to route the Qbittorrent traffic through a VPN for privacy and security.
-[source,yaml]
-----
-include::qbittorrent.yaml[]
-
-
-----
-
-
-== Automation
-.automation.yaml (docker-compose) file contains the configuration for the automation containers. These containers are used to automate the downloading and organization of media files. The automation containers include Sonarr, Radarr, and Bazarr.
-[source,yaml]
-----
-include::automation.yaml[]
-----
 
 
 == Cloudflare Tunnel   

@@ -6,6 +6,8 @@ services:
     environment:
       - LOG_LEVEL=info
       - TZ=Your/Timezone
+    env_file:
+      - /share/Docker/automation/.env
     networks:
       - media-bridge
     volumes:
@@ -23,7 +25,8 @@ services:
       - TZ=Your/Timezone
     networks:
       - media-bridge
-    volumes:
+    env_file:
+      - /share/Docker/automation/.env    volumes:
       - /share/Media/Movies:/movies
       - /share/Media/downloads:/downloads
       - /share/Docker/automation/radarr/config:/config
@@ -34,6 +37,8 @@ services:
   sonarr:
     image: ghcr.io/linuxserver/sonarr:latest
     container_name: sonarr
+    env_file:
+      - /share/Docker/automation/.env
     environment:
       - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
       - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
@@ -51,6 +56,8 @@ services:
   prowlarr:
     image: ghcr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
+    env_file:
+      - /share/Docker/automation/.env
     environment:
       - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
       - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
@@ -70,6 +77,8 @@ services:
       - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
       - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
       - TZ=Your/Timezone
+    env_file:
+      - /share/Docker/automation/.env
     networks:
       - media-bridge
     volumes:

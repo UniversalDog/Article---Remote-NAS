@@ -6,11 +6,6 @@ services:
       - NET_ADMIN.
     env_file:
       - /share/Docker/qbittorrent/.env
-    environment:
-      - VPN_SERVICE_PROVIDER=protonvpn
-      - VPN_TYPE=wireguard
-      - WIREGUARD_PRIVATE_KEY=wIV9ziv0hHQibgeccv2Vx5xqZ60blEhr6O8g8ACiGEA=
-      - WIREGUARD_ADDRESS=10.2.0.2/32
     networks:
       - media-bridge # <-- CONNECT GLUETUN TO THE BRIDGE
     ports:
@@ -21,6 +16,7 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    env_file:
       - /share/Docker/qbittorrent/.env
     environment:
       - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
