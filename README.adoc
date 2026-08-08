@@ -279,7 +279,7 @@ There are plenty of good guides out there on how to set up the 'Arr stack and Je
 
 === Firewall
 
-I've setup the QuFirewall on the QNAP NAS to block all incoming connections except for the ports required for Tailscale, Nginx Proxy Manager and allow access to Jellyfin etc. from the countries I will be in over the next 12 months or so.This ensures that only authorized users can access the services running on the NAS.
+I've setup the QuFirewall on the QNAP NAS to block all incoming connections except for the ports required for Tailscale, Nginx Proxy Manager and allow access to Jellyfin etc. from the countries I will be in over the next 12 months or so.This ensures that only authorized users can access the services running on the NAS. 
 
 image::images/Firewall.png[]
 
