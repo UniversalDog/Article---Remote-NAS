@@ -1,0 +1,12 @@
+services:
+  porkbun-ddns:
+    image: mietzen/porkbun-ddns:latest
+    container_name: porkbun-ddns
+    restart: unless-stopped
+    env_file:
+      - /share/Docker/porkbun-ddns/.env
+    environment:
+      - APIKEY=${PORKBUN_API_KEY}
+      - SECRETAPIKEY=${PORKBUN_SECRET_KEY}
+      - DOMAIN=${MY_DOMAIN}
+      - SUBDOMAINS=${MY_SUBDOMAINS}

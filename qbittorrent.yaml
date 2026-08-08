@@ -3,9 +3,14 @@ services:
     image: qmcgaw/gluetun
     container_name: gluetun
     cap_add:
-      - NET_ADMIN.
+      - NET_ADMIN
     env_file:
       - /share/Docker/qbittorrent/.env
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - WIREGUARD_PRIVATE_KEY=@{WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESS=@{WIREGUARD_ADDRESS}
     networks:
       - media-bridge # <-- CONNECT GLUETUN TO THE BRIDGE
     ports:
@@ -16,12 +21,10 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
-    env_file:
-      - /share/Docker/qbittorrent/.env
     environment:
-      - PUID=1002 # This is my dockeruser ID on my QNAP NAS. Replace with your QNAP NAS user ID
-      - PGID=0  # This is the administrators group ID on my QNAP NAS. Replace with your QNAP NAS group ID
-      - TZ=Your/Timezone
+      - PUID=1002 # Replace with your QNAP NAS user ID
+      - PGID=0  # Replace with your QNAP NAS group ID
+      - TZ=Asia/Makassar
       - WEBUI_PORT=8085
     volumes:
       - /share/Docker/qbittorrent/config:/config # Adjust to your shared folder path

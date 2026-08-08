@@ -1,15 +1,16 @@
+services:
   npm:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginx-proxy-manager
     restart: unless-stopped
+    network_mode: "host"
+    environment:
+      - TZ=Your/Timezone
+      - DEBUG=true
     ports:
       - '80:80'    # Public HTTP
       - '443:443'  # Public HTTPS (SSL Termination)
       - '81:81'    # NPM Admin UI (Keep local/Tailscale)
-    env_file:
-      - /share/Docker/npm/.env
     volumes:
-      - /share/Docker/automation/npm/data:/data
-      - /share/Docker/automation/npm/letsencrypt:/etc/letsencrypt
-    networks:
-      - media-bridge
+      - /share/Docker/npm/data:/data
+      - /share/Docker/npm/letsencrypt:/etc/letsencrypt
