@@ -1,0 +1,38 @@
+name: Publish Asciidoc to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Triggers the build whenever you push to main
+
+permissions:
+  contents: write # Allows the action to write to the gh-pages branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Fetch your repository files
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # Step 2: Use an official container to compile Asciidoc to HTML
+      - name: Compile Asciidoc to HTML
+        uses: asciidoctor/action-asciidoctor@v2
+        with:
+          # Points to your main document and builds it into the 'dist' output folder
+          program: "asciidoctor -D dist README.adoc"
+
+      # Step 3: Copy images to the output folder if they exist
+      - name: Copy Assets
+        run: |
+          if [ -d "images" ]; then
+            cp -r images dist/
+          fi
+
+      # Step 4: Take the compiled 'dist' folder and push it to gh-pages branch
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist # The folder containing your newly created index.html
+          branch: gh-pages # The target branch GitHub Pages reads from
