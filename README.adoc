@@ -12,7 +12,11 @@ This guide is provided strictly for educational and technical informational purp
 
 == Introduction & Architecture Overview
 
+I will be travelling between countries for the next 12 months or so and wanted to set up a secure, media-centric home lab that I could access remotely. I also wanted to ensure that the services I was exposing to the internet were secure and not vulnerable to attacks. I decided to use a QNAP NAS (TS-464 with 16gb of RAM and currently 2 16tb drives) as the base for my home lab, as it provides a powerful and flexible platform for running containers and managing media files.
+
 In this guide, we will walk through the process of setting up a secure, media-centric home lab using a QNAP NAS. The goal is to create a system that allows for remote management and access while maintaining strong security practices. The architecture will leverage containerization, reverse proxying, and mesh VPN technology to ensure that sensitive services are not exposed directly to the internet.
+
+
 
 
 == The Stack
