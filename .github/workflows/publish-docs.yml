@@ -21,7 +21,7 @@ jobs:
         uses: asciidoctor/action-asciidoctor@v2
         with:
           # Points to your main document and builds it into the 'dist' output folder
-          program: "asciidoctor -D dist README.adoc"
+          program: "asciidoctor -D dist docs/index.adoc"
 
       # Step 3: Copy images to the output folder if they exist
       - name: Copy Assets
