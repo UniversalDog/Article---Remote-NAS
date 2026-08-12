@@ -1,38 +1,26 @@
-name: Publish Asciidoc to GitHub Pages
+name: build adocs
 
 on:
   push:
     branches:
-      - main # Triggers the build whenever you push to main
-
-permissions:
-  contents: write # Allows the action to write to the gh-pages branch
-
+    - main
 jobs:
-  build-and-deploy:
+  adoc_build:
     runs-on: ubuntu-latest
+    name: asciidoctor -D docs --backend=html5 -o index.html -a toc2 docs/index.adoc 
     steps:
-      # Step 1: Fetch your repository files
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      # Step 2: Use an official container to compile Asciidoc to HTML
-      - name: Compile Asciidoc to HTML
-        uses: asciidoctor/action-asciidoctor@v2
-        with:
-          # Points to your main document and builds it into the 'dist' output folder
-          program: "asciidoctor -D dist docs/index.adoc"
-
-      # Step 3: Copy images to the output folder if they exist
-      - name: Copy Assets
-        run: |
-          if [ -d "images" ]; then
-            cp -r images dist/
-          fi
-
-      # Step 4: Take the compiled 'dist' folder and push it to gh-pages branch
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist # The folder containing your newly created index.html
-          branch: gh-pages # The target branch GitHub Pages reads from
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Get build container
+      id: adocbuild
+      uses: tonynv/asciidoctor-action@master
+      with:
+          program: "asciidoctor -D docs --backend=html5 -o index.html docs/index.adoc"
+    - name: Print execution time
+      run: echo "Time ${{ steps.adocbuild.outputs.time }}"
+    - name: Deploy docs to ghpages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        publish_branch: gh-pages
+        publish_dir: ./
