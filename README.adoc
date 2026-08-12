@@ -18,7 +18,6 @@ In this guide, we will walk through the process of setting up a secure, media-ce
 
 
 
-
 == The Stack
 
 
