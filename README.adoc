@@ -34,7 +34,7 @@ User (Remote) -> Tailscale -> QNAP QTS Console & SSH (Internal/Private)
 User (Browser/App/Google TV) -> Nginx Reverse Proxy (SSL) -> Jellyfin (Exposed/Public)
 ....
 
-
+ 
 == Prerequisites
 
 * A QNAP NAS running Container Station (or Docker/Docker Compose). Any system that supports containerization will work.
